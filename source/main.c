@@ -148,26 +148,27 @@ void mcuFailure(){
     return;
 }
 
-void RTC_to_BCD(RTC * rtctime)
-{
-    u8 * bufs = (u8*)rtctime;
-    for (int i = 0; i < UNITS_AMOUNT; i++)
-    {
-        u8 units = bufs[i] % 10;
-        u8 tens = (bufs[i] - units) / 10;
-        bufs[i] = (tens << 4) | units;
-    }
-}
-
-void BCD_to_RTC(RTC * rtctime)
-{
-    u8 * bufs = (u8*)rtctime;
+Result readRTCFromMCU(RTC * p_rtctime){
+    Result ret = mcuReadRegister(0x30, p_rtctime, UNITS_AMOUNT);
+    u8 * bufs = (u8*)p_rtctime;
     for (int i = 0; i < UNITS_AMOUNT; i++)
     {
         u8 units = bufs[i] & 0xF;
         u8 tens = bufs[i] >> 4;
         bufs[i] = (10 * tens) + units;
     }
+    return ret;
+}
+
+Result writeRTCToMCU(RTC rtctime){
+    u8 * bufs = (u8*)&rtctime;
+    for (int i = 0; i < UNITS_AMOUNT; i++)
+    {
+        u8 units = bufs[i] % 10;
+        u8 tens = (bufs[i] - units) / 10;
+        bufs[i] = (tens << 4) | units;
+    }
+    return mcuWriteRegister(0x30, &rtctime, UNITS_AMOUNT);
 }
 
 int main ()
@@ -190,6 +191,9 @@ int main ()
         mcuFailure();
         return -1;
     }
+
+    // my code goes here!
+
     
     puts ("\x1b[35m-\x1b[0m\x1b[31m-\x1b[0m\x1b[33m-\x1b[0m       \x1b[32mRTChanger Version1.1\x1b[0m       \x1b[35m-\x1b[0m\x1b[31m-\x1b[0m\x1b[33m-\x1b[0m");
     puts ("Welcome to RTChanger! \n"); //Notifications to user after booting RTChanger.
@@ -214,8 +218,7 @@ int main ()
     u8 hmac[0x20];
     
     RTC rtctime = {0};
-    mcuReadRegister(0x30, &rtctime, UNITS_AMOUNT);
-    BCD_to_RTC(&rtctime);
+    readRTCFromMCU(&rtctime);
     
     u32 kDown = 0;
     u32 kHeld = 0;
@@ -263,9 +266,7 @@ int main ()
         
         if(kDown & KEY_A) //Allows the user to save the changes.
         {
-            RTC_to_BCD(&rtctime);
-            ret = mcuWriteRegister(0x30, &rtctime, UNITS_AMOUNT);
-            BCD_to_RTC(&rtctime);
+            writeRTCToMCU(rtctime);
             
             deinitServices();
             
@@ -290,10 +291,7 @@ int main ()
                     memset(param, 0, sizeof(param));
                     memset(hmac, 0, sizeof(hmac));
                     
-                    RTC_to_BCD(&rtctime);
-                    ret = mcuReadRegister(0x30, &rtctime, UNITS_AMOUNT);
-                    ret = mcuWriteRegister(0x30, &rtctime, UNITS_AMOUNT);
-                    BCD_to_RTC(&rtctime);
+                    writeRTCToMCU(rtctime);
                     
                     mcuExit();
                     gfxExit();
@@ -344,10 +342,7 @@ int main ()
                         APT_PrepareToDoApplicationJump(0, 0x0004000000175E00, MEDIATYPE_SD);
                     }
                     
-                    RTC_to_BCD(&rtctime);
-                    ret = mcuReadRegister(0x30, &rtctime, UNITS_AMOUNT);
-                    ret = mcuWriteRegister(0x30, &rtctime, UNITS_AMOUNT);
-                    BCD_to_RTC(&rtctime);
+                    writeRTCToMCU(rtctime);
                     
                     deinitServices();
                     
