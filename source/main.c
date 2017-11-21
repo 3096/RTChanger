@@ -181,7 +181,7 @@ int main ()
     if(R_FAILED(ret))
     {
         consoleSelect(&topScreen);
-        printf("Failed to init MCU: %08X\n", ret);
+        printf("Failed to init MCU: %08li\n", ret);
         puts("This .3DSX was likely opened without \nLuma3DS or a SM patch.");
         puts("\x1b[30;41mYou cannot use the .3DSX without Luma3DS and Boot9Strap.\x1b[0m");
         puts("If you have Luma3DS 8.0 and up, just \nignore the above message and patch SM.  Restart the application afterwards.");
@@ -233,8 +233,7 @@ int main ()
         kHeld = hidKeysHeld();        //Detects if the A button was held.
         kUp = hidKeysUp();            //Detects if the A button was just released.
         
-        printf("\x1b[0;0H");
-        printf("\n\n\n\n\n\n\n\n\n\n%4.4u/%2.2u/%2.2u %2.2u:%2.2u:%2.2u\n", rtctime.year+2000, rtctime.month, rtctime.day, rtctime.hour, rtctime.minute, rtctime.seconds);
+        printf("\x1b[12;0H%4.4u/%2.2u/%2.2u %2.2u:%2.2u:%2.2u\n", rtctime.year+2000, rtctime.month, rtctime.day, rtctime.hour, rtctime.minute, rtctime.seconds);
         printf("%*s\e[0K\e[1A\e[99D", cursorOffset[offs], "^^"); //Displays the cursor and time.
         
         if(kHeld & KEY_START) break;  //User can choose to continue or return to the Home Menu.  
@@ -281,8 +280,7 @@ int main ()
             
             while (aptMainLoop())
             {
-                printf("\x1b[0;0H");
-                printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPkmX, PkmY, OR, AS, Sun, Moon\n");
+                printf("\x1b[22;0HPkmX, PkmY, OR, AS, Sun, Moon\n");
                 printf("%*s\e[0K\e[1A\e[99D", cursorOffsettwo[pokemonGame], "^^");
                 
                 if(kDown & KEY_START) break;
